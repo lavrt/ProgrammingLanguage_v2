@@ -21,7 +21,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 .PHONY: clean run
 
 clean:
-	rm -rf $(BIN_DIR) $(BUILD_DIR) $(DUMP_DIR)
+	@rm -rf $(BIN_DIR) $(BUILD_DIR) $(DUMP_DIR)
 
 run: $(BIN_DIR)/$(TARGET)
 	@mkdir -p $(DUMP_DIR)
