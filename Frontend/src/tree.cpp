@@ -100,7 +100,7 @@ void dump(tNode* root)
     FCLOSE(dumpFile);
 
     #if defined GRAPHVIZ
-        system("dot dump.gv -Tpng -o dump.png");
+        system("dot ./dump/dump.gv -Tpng -o dump.png");
     #endif
 }
 
