@@ -9,8 +9,7 @@
 #include "tree.h"
 #include "debug.h"
 
-Vector tokenizer()
-{
+Vector tokenizer() {
     FILE* inputFile = fopen(kNameOfFileWithCode, "r");
     assert(inputFile);
 
@@ -24,20 +23,16 @@ Vector tokenizer()
     Vector tokenVector;
     vectorInit(&tokenVector, kInitialSizeOfTokenVector);
 
-    for (char* pointerToWord = strtok(dataArray, " \n"); pointerToWord; pointerToWord = strtok(NULL, " \n"))
-    {
+    for (char* pointerToWord = strtok(dataArray, " \n"); pointerToWord; pointerToWord = strtok(NULL, " \n")) {
         Token* currentToken = (Token*)calloc(1, sizeof(Token));
         assert(currentToken);
 
         currentToken->value = pointerToWord;
 
-        if (tokenVector.size)
-        {
+        if (tokenVector.size) {
             currentToken->left = (Token*)vectorGet(&tokenVector, tokenVector.size - 1);
             ((Token*)vectorGet(&tokenVector, tokenVector.size - 1))->right = currentToken;
-        }
-        else
-        {
+        } else {
             Token* serviceToken = (Token*)calloc(1, sizeof(Token));
             assert(serviceToken);
 
@@ -46,20 +41,13 @@ Vector tokenizer()
             serviceToken->value = dataArray;
         }
 
-        if (!strcmp(pointerToWord, keyDef))
-        {
+        if (!strcmp(pointerToWord, keyDef)) {
             currentToken->type = Function;
-        }
-        else if (isKeyWord(pointerToWord))
-        {
+        } else if (isKeyWord(pointerToWord)) {
             currentToken->type = Operation;
-        }
-        else if (isdigit(pointerToWord[0]))
-        {
+        } else if (isdigit(pointerToWord[0])) {
             currentToken->type = Number;
-        }
-        else
-        {
+        } else {
             currentToken->type = Identifier;
         }
 
@@ -69,15 +57,13 @@ Vector tokenizer()
     return tokenVector;
 }
 
-void tokenVectorDtor(Vector* vec)
-{
+void tokenVectorDtor(Vector* vec) {
     FREE(((Token*)vectorGet(vec, 0))->left->value);
     FREE(((Token*)vectorGet(vec, 0))->left);
     freeAllocatedVectorCells(vec);
 }
 
-size_t getFileSize(FILE* file)
-{
+size_t getFileSize(FILE* file) {
     assert(file);
 
     long currentPos = ftell(file);
@@ -88,8 +74,7 @@ size_t getFileSize(FILE* file)
     return size;
 }
 
-bool isKeyWord(const char* const word)
-{
+bool isKeyWord(const char* const word) {
          if (!strcmp(word, keyIf               )) return true;
     else if (!strcmp(word, keyDef              )) return true;
     else if (!strcmp(word, keyAdd              )) return true;

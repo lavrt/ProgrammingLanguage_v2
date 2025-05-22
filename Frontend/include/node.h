@@ -1,24 +1,21 @@
 #ifndef NODE_H
 #define NODE_H
 
-enum NodeType
-{
+enum NodeType {
     Number     = 1,
     Operation  = 2,
     Identifier = 3,
     Function   = 4,
 };
 
-struct tNode
-{
+struct tNode {
     NodeType type;
     const char* value;
     tNode* left;
     tNode* right;
 };
 
-enum Operations
-{
+enum Operations {
     NoOperation =  0,
     Semicolon = 1,
     Print = 2,

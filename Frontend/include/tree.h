@@ -12,7 +12,7 @@
 #define FCLOSE(ptr_) \
     do { fclose(ptr_); ptr_ = NULL; } while(0);
 
-const char* const kDumpFileName = "./dump/dump.gv";
+const char* const kDumpFileName = "./Frontend/dump/dump.gv";
 
 const char* const kFunction = "def";
 const char* const kNumber = "number";

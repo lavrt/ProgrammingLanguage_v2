@@ -6,6 +6,8 @@
 
 #include "debug.h"
 
+#define GRAPHVIZ
+
 // static --------------------------------------------------------------------------------------------------------------
 
 static tNode* memoryAllocationForNode();
@@ -14,12 +16,10 @@ static void dumpTreeTraversalWithArrows(tNode* node, FILE* dumpFile);
 
 // global --------------------------------------------------------------------------------------------------------------
 
-tNode* newNode(NodeType type, const char* value, tNode* left, tNode* right)
-{
+tNode* newNode(NodeType type, const char* value, tNode* left, tNode* right) {
     tNode* node = NULL;
 
-    switch (type)
-    {
+    switch (type) {
         case Number:
         {
             node = memoryAllocationForNode();
@@ -62,16 +62,13 @@ tNode* newNode(NodeType type, const char* value, tNode* left, tNode* right)
     return node;
 }
 
-void treeDtor(tNode* node)
-{
+void treeDtor(tNode* node) {
     assert(node);
 
-    if (node->left)
-    {
+    if (node->left) {
         treeDtor(node->left);
     }
-    if (node->right)
-    {
+    if (node->right) {
         treeDtor(node->right);
     }
 
@@ -79,8 +76,7 @@ void treeDtor(tNode* node)
     FREE(node);
 }
 
-void dump(tNode* root)
-{
+void dump(tNode* root) {
     assert(root);
 
     FILE* dumpFile = fopen(kDumpFileName, "w");
@@ -100,149 +96,116 @@ void dump(tNode* root)
     FCLOSE(dumpFile);
 
     #if defined GRAPHVIZ
-        system("dot ./dump/dump.gv -Tpng -o dump.png");
+        system("dot ./Frontend/dump/dump.gv -Tpng -o ./Frontend/dump/dump.png");
     #endif
 }
 
-tNode* copyNode(tNode* node)
-{
+tNode* copyNode(tNode* node) {
     return (node)
                   ? newNode(node->type, node->value, copyNode(node->left), copyNode(node->right))
                   : NULL;
 }
 
-bool subtreeContainsVariable(tNode* node)
-{
-    if (!node) return false;
-
+bool subtreeContainsVariable(tNode* node) {
+    if (!node) {
+        return false;
+    }
+ 
     static int rank = 0;
     static bool presenceOfVariable = false;
 
-    if (node->type == Identifier)
-    {
+    if (node->type == Identifier) {
         presenceOfVariable = true;
-    }
-    else
-    {
+    } else {
         rank++;
         subtreeContainsVariable(node->left);
         subtreeContainsVariable(node->right);
         rank--;
     }
 
-    if (presenceOfVariable && !rank)
-    {
+    if (presenceOfVariable && !rank) {
         presenceOfVariable = false;
         return true;
-    }
-    else
-    {
+    } else {
         return false;
     }
 }
 
 // static --------------------------------------------------------------------------------------------------------------
 
-static tNode* memoryAllocationForNode(void)
-{
+static tNode* memoryAllocationForNode(void) {
     tNode* node = (tNode*)calloc(1, sizeof(tNode));
     assert(node);
 
     return node;
 }
 
-static void dumpTreeTraversal(tNode* node, FILE* dumpFile)
-{
+static void dumpTreeTraversal(tNode* node, FILE* dumpFile) {
     assert(dumpFile);
-    if (!node)
-    {
+    if (!node) {
         return;
     }
 
     static size_t rank = 0;
     fprintf(dumpFile, "    node_%p [rank=%lu,label=\" { node: %p", node, rank, node);
 
-    if (node->type == Number)
-    {
+    if (node->type == Number) {
         fprintf(dumpFile, " | type: %s | value: %s | ", kNumber, node->value);
-    }
-    else if (node->type == Identifier)
-    {
+    } else if (node->type == Identifier) {
         fprintf(dumpFile, " | type: %s | value: %s | ", kVariable, node->value);
-    }
-    else if (node->type == Operation)
-    {
+    } else if (node->type == Operation) {
         if (!strcmp(node->value, ">" ) || !strcmp(node->value, "<" ) || !strcmp(node->value, "==") ||
-        !strcmp(node->value, ">=") || !strcmp(node->value, "<=") || !strcmp(node->value, "!="))
-        {
+            !strcmp(node->value, ">=") || !strcmp(node->value, "<=") || !strcmp(node->value, "!=")) {
+
             fprintf(dumpFile, " | type: %s | value: \\%s | ", kOperation, node->value);
-        }
-        else
-        {
+        } else {
             fprintf(dumpFile, " | type: %s | value: %s | ", kOperation, node->value);
         }
-    }
-    else if (node->type == Function)
-    {
+    } else if (node->type == Function) {
         fprintf(dumpFile, " | type: %s | value: %s | ", kFunction, node->value);
-    }
-    else assert(0);
+    } else assert(0);
 
     fprintf(dumpFile, "{ left: %p | right: %p }} \"", node->left, node->right);
 
-    if (node->type == Number)
-    {
+    if (node->type == Number) {
         fprintf(dumpFile, ", color = \"#DBD4FF\"];\n");
-    }
-    else if (node->type == Identifier)
-    {
+    } else if (node->type == Identifier) {
         fprintf(dumpFile, ", color = \"#EBAEE6\"];\n");
-    }
-    else if (node->type == Operation)
-    {
+    } else if (node->type == Operation) {
         fprintf(dumpFile, ", color = \"#E8D59E\"];\n");
-    }
-    else if (node->type == Function)
-    {
+    } else if (node->type == Function) {
         fprintf(dumpFile, ", color = \"#E7FFAC\"];\n");
     }
 
-    if (node->left)
-    {
+    if (node->left) {
         rank++;
         dumpTreeTraversal(node->left, dumpFile);
     }
-    if (node->right)
-    {
+    if (node->right) {
         rank++;
         dumpTreeTraversal(node->right, dumpFile);
     }
     rank--;
 }
 
-static void dumpTreeTraversalWithArrows(tNode* node, FILE* dumpFile)
-{
+static void dumpTreeTraversalWithArrows(tNode* node, FILE* dumpFile) {
     assert(dumpFile);
-    if (!node)
-    {
+    if (!node) {
         return;
     }
 
     static int flag = 0;
-    if (node->left)
-    {
+    if (node->left) {
         (flag++) ? fprintf(dumpFile, "-> node_%p ", node->left)
                  : fprintf(dumpFile, "    node_%p -> node_%p ", node, node->left);
         dumpTreeTraversalWithArrows(node->left, dumpFile);
     }
-    if (node->right)
-    {
+    if (node->right) {
         (flag++) ? fprintf(dumpFile, "-> node_%p ", node->right)
                  : fprintf(dumpFile, "    node_%p -> node_%p ", node, node->right);
         dumpTreeTraversalWithArrows(node->right, dumpFile);
     }
-    if (flag)
-    {
+    if (flag) {
         fprintf(dumpFile, ";\n");
     }
     flag = 0;

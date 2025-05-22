@@ -10,8 +10,7 @@
 const int kInitialSizeOfTokenVector = 64;
 const char* const kNameOfFileWithCode = "code.txt";
 
-struct Token
-{
+struct Token {
     NodeType type;
     char* value;
     Token* left;
