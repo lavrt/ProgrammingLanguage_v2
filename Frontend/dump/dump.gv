@@ -44,7 +44,7 @@ digraph
     node_0x503000001330 [rank=4,label=" { node: 0x503000001330 | type: number | value: 5 | { left: (nil) | right: (nil) }} ", color = "#DBD4FF"];
     node_0x503000001450 [rank=2,label=" { node: 0x503000001450 | type: operation | value: = | { left: 0x5030000013c0 | right: 0x503000001420 }} ", color = "#E8D59E"];
     node_0x5030000013c0 [rank=3,label=" { node: 0x5030000013c0 | type: variable | value: k | { left: (nil) | right: (nil) }} ", color = "#EBAEE6"];
-    node_0x503000001420 [rank=3,label=" { node: 0x503000001420 | type: operation | value: f | { left: 0x5030000013f0 | right: (nil) }} ", color = "#E8D59E"];
+    node_0x503000001420 [rank=3,label=" { node: 0x503000001420 | type: calling | value: f | { left: 0x5030000013f0 | right: (nil) }} ", color = "#E8A79E"];
     node_0x5030000013f0 [rank=4,label=" { node: 0x5030000013f0 | type: variable | value: n | { left: (nil) | right: (nil) }} ", color = "#EBAEE6"];
     node_0x5030000014e0 [rank=1,label=" { node: 0x5030000014e0 | type: operation | value: print | { left: 0x5030000014b0 | right: (nil) }} ", color = "#E8D59E"];
     node_0x5030000014b0 [rank=2,label=" { node: 0x5030000014b0 | type: variable | value: k | { left: (nil) | right: (nil) }} ", color = "#EBAEE6"];

@@ -305,7 +305,7 @@ static tNode* getAssignment(Vector tokenVector, size_t* pos) {
         }
         CHECK_RIGHT_PARENTHESIS;
         (*pos)++;
-        rightNode = newNode(Operation, name, leftNode, NULL);
+        rightNode = newNode(Calling, name, leftNode, NULL); 
     } else {
         rightNode = getComparsion(tokenVector, pos);
     }

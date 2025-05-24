@@ -45,6 +45,15 @@ tNode* newNode(NodeType type, const char* value, tNode* left, tNode* right) {
             node->right = right;
         }
         break;
+        case Calling:
+        {
+            node = memoryAllocationForNode();
+
+            node->type = Calling;
+            node->left = left;
+            node->right = right;            
+        }
+        break;
         case Function:
         {
             node = memoryAllocationForNode();
@@ -163,6 +172,8 @@ static void dumpTreeTraversal(tNode* node, FILE* dumpFile) {
         }
     } else if (node->type == Function) {
         fprintf(dumpFile, " | type: %s | value: %s | ", kFunction, node->value);
+    } else if (node->type == Calling) {
+        fprintf(dumpFile, " | type: %s | value: %s | ", kCalling, node->value);
     } else assert(0);
 
     fprintf(dumpFile, "{ left: %p | right: %p }} \"", node->left, node->right);
@@ -175,6 +186,8 @@ static void dumpTreeTraversal(tNode* node, FILE* dumpFile) {
         fprintf(dumpFile, ", color = \"#E8D59E\"];\n");
     } else if (node->type == Function) {
         fprintf(dumpFile, ", color = \"#E7FFAC\"];\n");
+    } else if (node->type == Calling) {
+        fprintf(dumpFile, ", color = \"#E8A79E\"];\n");
     }
 
     if (node->left) {
