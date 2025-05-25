@@ -2,19 +2,69 @@
 
 #include <assert.h>
 #include <string.h>
+#include <stdlib.h>
 
 // static ------------------------------------------------------------------------------------------
 
+static const char* const kNasmFileName = "nasm.s";
+
+static void InitScopeTable(TScopeTable* scopeTable);
+static void EnterScope(TScopeTable* scopeTable);
+static void ExitScope(TScopeTable* scopeTable);
+static void AddVariable(TScopeTable* scopeTable, const char* name, bool isGlobal);
+static TSymbol* FindVariable(TScopeTable* scopeTable, const char* name);
+static void GenerateCode(TScopeTable* scopeTable, tNode* node, FILE* output);
 static Operations GetOperationType(const char* const word);
+static void AnalyzeFunctionBody(TScopeTable* scopeTable, tNode* body);
+static void AnalyzeLocals(TScopeTable* scopeTable, tNode* node);
+static size_t CalculateLocalsSize(TScopeTable* scopeTable);
+static void AnalyzeGlobals(TSymbolTable* globalScope, tNode* node, bool isGlobalScope);
 
 // global ------------------------------------------------------------------------------------------
 
-void InitScopeTable(TScopeTable* scopeTable) {
+void RunGenerator(tNode* root) {
+    FILE* output = fopen(kNasmFileName, "w");
+    assert(output);
+
+    fprintf(output, "section .text\n");
+    fprintf(output, "extern sin, cos, sqrt, printf\n");
+    fprintf(output, "global _start\n");
+
+    TSymbolTable globalScope = {};
+    tNode* node = root; // FIXME
+    AnalyzeGlobals(&globalScope, node, true);
+
+    fprintf(output, "\nsection .data\n");
+    fprintf(output, "    fmt db \"%d\", 10, 0\n");
+    for (size_t i = 0; i < globalScope.count; i++) {
+        TSymbol* symbol = &globalScope.symbols[i];
+        fprintf(output, "    %s dq %d\n", symbol->name, symbol->initialValue);
+    }
+
+    fprintf(output, "\n_start:\n");
+    fprintf(output, "    call main\n");
+    fprintf(output, "    mov rax, 60\n");
+    fprintf(output, "    xor rdi, rdi\n");
+    fprintf(output, "    syscall\n");
+
+    TScopeTable scopeTable = {};
+    InitScopeTable(&scopeTable);
+
+    fprintf(output, "\nmain:\n");
+    GenerateCode(&scopeTable, root, output);
+    fprintf(output, "    ret\n");
+
+    fclose(output);
+}
+
+// static ------------------------------------------------------------------------------------------
+
+static void InitScopeTable(TScopeTable* scopeTable) {
     scopeTable->globalScope.count = 0;
     scopeTable->currentScope = -1;
 }
 
-void EnterScope(TScopeTable* scopeTable) {
+static void EnterScope(TScopeTable* scopeTable) {
     if (scopeTable->currentScope >= kMaxScopes - 1) {
         fprintf(stderr, "Scope stack oveerflow\n");
         assert(0);
@@ -24,7 +74,7 @@ void EnterScope(TScopeTable* scopeTable) {
     scopeTable->scopes[scopeTable->currentScope].currentOffset = 8; // [rbp-8] for first variable
 }
 
-void ExitScope(TScopeTable* scopeTable) {
+static void ExitScope(TScopeTable* scopeTable) {
     if (scopeTable->currentScope < 0) {
         fprintf(stderr, "Scope stack underflow");
         assert(0);
@@ -32,7 +82,7 @@ void ExitScope(TScopeTable* scopeTable) {
     scopeTable->currentScope--;
 }
 
-void AddVariable(TScopeTable* scopeTable, const char* name, bool isGlobal) {
+static void AddVariable(TScopeTable* scopeTable, const char* name, bool isGlobal) {
     TSymbolTable* table = isGlobal ? &scopeTable->globalScope
                                    : &scopeTable->scopes[scopeTable->currentScope];
     
@@ -58,7 +108,7 @@ void AddVariable(TScopeTable* scopeTable, const char* name, bool isGlobal) {
     }
 }
 
-TSymbol* FindVariable(TScopeTable* scopeTable, const char* name) {
+static TSymbol* FindVariable(TScopeTable* scopeTable, const char* name) {
     if (scopeTable->currentScope >= 0) {
         TSymbolTable* localScope = &scopeTable->scopes[scopeTable->currentScope];
         for (size_t i = 0; i < localScope->count; i++) {
@@ -77,7 +127,7 @@ TSymbol* FindVariable(TScopeTable* scopeTable, const char* name) {
     return NULL;
 }
 
-void GenerateCode(TScopeTable* scopeTable, tNode* node, FILE* output) {
+static void GenerateCode(TScopeTable* scopeTable, tNode* node, FILE* output) {
     if (!node) {
         return;
     }
@@ -402,8 +452,6 @@ void GenerateCode(TScopeTable* scopeTable, tNode* node, FILE* output) {
     }
 }
 
-// static ------------------------------------------------------------------------------------------
-
 static Operations GetOperationType(const char* const word) {
     assert(word);          
 
@@ -460,4 +508,48 @@ static size_t CalculateLocalsSize(TScopeTable* scopeTable) {
     }
 
     return totalSize;
+}
+
+static void AnalyzeGlobals(TSymbolTable* globalScope, tNode* node, bool isGlobalScope) {
+    if (!node) {
+        return;
+    }
+
+    if (node->type == Operation && GetOperationType(node->value) == Equal
+        && node->left->type == Identifier) {
+        if (isGlobalScope) {
+            for (size_t i = 0; i < globalScope->count; i++) {
+                if (!strcmp(globalScope->symbols[i].name, node->left->value)) {
+                    return;
+                }
+            }
+
+            if (globalScope->count >= kMaxSymbols) {
+                fprintf(stderr, "Symbol table overflow\n");
+                assert(0);
+            }
+            
+            TSymbol* symbol = &globalScope->symbols[globalScope->count++];
+            strncpy(symbol->name, node->left->value, kMaxLengthOfSymbol);
+            symbol->isGlobal = true;
+            symbol->offset = 0;
+
+            if (node->right->type == Number) {
+                symbol->initialValue = atoi(node->right->value); 
+            } else {
+                symbol->initialValue = 0;
+            }
+        }
+    }
+
+    bool isChildGlobalScope = isGlobalScope;
+    if (node->type == Operation) {
+        Operations op = GetOperationType(node->value);
+        if (op == Def || op == If || op == While) {
+            isChildGlobalScope = false;
+        } 
+    }
+
+    AnalyzeGlobals(globalScope, node->left, isChildGlobalScope);
+    AnalyzeGlobals(globalScope, node->right, isChildGlobalScope);
 }

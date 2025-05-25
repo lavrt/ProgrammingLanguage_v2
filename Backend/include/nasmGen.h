@@ -5,7 +5,6 @@
 
 #include <stdio.h>
 
-const char* const kNasmFileName = "nasmCode.s";
 const size_t kMaxLengthOfSymbol = 32;
 const size_t kMaxSymbols = 128;
 const size_t kMaxScopes = 16;
@@ -14,6 +13,7 @@ struct TSymbol {
     char name[kMaxLengthOfSymbol];
     bool isGlobal;
     int offset; // for local variables
+    int initialValue; // for global variables
 };
 
 struct TSymbolTable {
@@ -28,6 +28,6 @@ struct TScopeTable {
     int currentScope;
 };
 
-void GenerateNasmCode(tNode* root);
+void RunGenerator(tNode* root);
 
 #endif // NASM_GEN
