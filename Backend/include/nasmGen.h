@@ -7,7 +7,7 @@
 
 const size_t kMaxLengthOfSymbol = 32;
 const size_t kMaxSymbols = 128;
-const size_t kMaxScopes = 16;
+const int kMaxScopes = 16;
 
 struct TSymbol {
     char name[kMaxLengthOfSymbol];

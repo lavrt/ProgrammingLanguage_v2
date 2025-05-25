@@ -28,31 +28,27 @@ void RunGenerator(tNode* root) {
 
     fprintf(output, "section .text\n");
     fprintf(output, "extern sin, cos, sqrt, printf\n");
-    fprintf(output, "global _start\n");
+    fprintf(output, "global main\n");
 
     TSymbolTable globalScope = {};
     tNode* node = root; // FIXME
     AnalyzeGlobals(&globalScope, node, true);
 
     fprintf(output, "\nsection .data\n");
-    fprintf(output, "    fmt db \"%d\", 10, 0\n");
+    fprintf(output, "    fmt db \"%%d\", 10, 0\n");
     for (size_t i = 0; i < globalScope.count; i++) {
         TSymbol* symbol = &globalScope.symbols[i];
         fprintf(output, "    %s dq %d\n", symbol->name, symbol->initialValue);
     }
-
-    fprintf(output, "\n_start:\n");
-    fprintf(output, "    call main\n");
-    fprintf(output, "    mov rax, 60\n");
-    fprintf(output, "    xor rdi, rdi\n");
-    fprintf(output, "    syscall\n");
 
     TScopeTable scopeTable = {};
     InitScopeTable(&scopeTable);
 
     fprintf(output, "\nmain:\n");
     GenerateCode(&scopeTable, root, output);
-    fprintf(output, "    ret\n");
+    fprintf(output, "    mov rax, 60\n");
+    fprintf(output, "    xor rdi, rdi\n");
+    fprintf(output, "    syscall\n");
 
     fclose(output);
 }
@@ -76,7 +72,7 @@ static void EnterScope(TScopeTable* scopeTable) {
 
 static void ExitScope(TScopeTable* scopeTable) {
     if (scopeTable->currentScope < 0) {
-        fprintf(stderr, "Scope stack underflow");
+        fprintf(stderr, "Scope stack underflow\n");
         assert(0);
     }
     scopeTable->currentScope--;
@@ -174,6 +170,34 @@ static void GenerateCode(TScopeTable* scopeTable, tNode* node, FILE* output) {
             }
 
             fprintf(output, "    push rax\n");
+        }
+
+        case Def: {
+            AnalyzeFunctionBody(scopeTable, node->right);
+
+            size_t localsSize = CalculateLocalsSize(scopeTable);
+
+            tNode* arg = node->left;
+            int argOffset = 16; // Смещения аргументов: [rbp+16], [rbp+24], и т.д.
+            while (arg != NULL) {
+                AddVariable(scopeTable, arg->value, false);
+                TSymbol* var = FindVariable(scopeTable, arg->value);
+                var->offset = argOffset;
+                argOffset += 8;
+                arg = arg->left;
+            }
+
+            fprintf(output, "%s:\n", node->value);
+            fprintf(output, "    push rbp\n");
+            fprintf(output, "    mov rbp, rsp\n");
+            if (localsSize > 0) {
+                fprintf(output, "    sub rsp, %zu\n", localsSize);
+            }
+
+            GenerateCode(scopeTable, node->right, output);
+
+            ExitScope(scopeTable);
+            break;
         }
 
         case Operation: {
@@ -407,32 +431,12 @@ static void GenerateCode(TScopeTable* scopeTable, tNode* node, FILE* output) {
                         var = FindVariable(scopeTable, node->left->value);
                     }
 
-                    fprintf(output, "    pop rax");
+                    fprintf(output, "    pop rax\n");
                     if (var->isGlobal) {
-                        fprintf(output, "    mov [%s], rax\n");
+                        fprintf(output, "    mov [%s], rax\n", var->name);
                     } else {
                         fprintf(output, "    mov [rbp-%d], rax\n", var->offset);
                     }
-                    break;
-                }
-
-                case Def: {
-                    AnalyzeFunctionBody(scopeTable, node->right);
-
-                    size_t localsSize = CalculateLocalsSize(scopeTable);
-
-                    fprintf(output, "%s:\n", node->value);
-                    fprintf(output, "    push rbp\n");
-                    fprintf(output, "    mov rbp, rsp\n");
-                    if (localsSize > 0) {
-                        fprintf(output, "    sub rsp, %zu\n", localsSize);
-                    }
-
-                    GenerateCode(scopeTable, node->right, output);
-
-                    fprintf(output, "    leave\n");
-                    fprintf(output, "    ret\n");
-                    ExitScope(scopeTable);
                     break;
                 }
 
