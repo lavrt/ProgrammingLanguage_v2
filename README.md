@@ -76,40 +76,29 @@ As already noted, we are comparing the first version of my project and the lates
 
 ### Programming language, (the first version, with a virtual machine)
 
-![Screenshot 1 of the hyperfine](./images/1.png)
+![Screenshot 1 of the hyperfine](./images/1.jpg)
 
-1000 launches of the program were conducted. As a result, we get that the average calculation time of the factorial of the number 12 was __(36.9 ± 6.5) milliseconds__.
+1000 launches of the program were conducted. As a result, we get that the average calculation time of the factorial of the number 12 was __(11.6 ± 3.7) milliseconds__.
 
 ### Programming language v2, (the latest version, with nasm code generation)
 
-![Screenshot 2 of the hyperfine](./images/2.png)
+![Screenshot 2 of the hyperfine](./images/2.jpg)
 
-Note that in this case, measurements using hyperfine are meaningless, since the relative error is 182%. 
-
-Then we will use other tools to measure the time. Let's use perf.
-
-![Screenshot 3 of the perf](./images/3.png)
-
-Now the relative margin of error is acceptable (0.75%).
-
-1000 launches of the program were conducted. As a result, we get that the average calculation time of the factorial of the number 12 was __(404.9 ± 3.0) microseconds__.
+1000 launches of the program were conducted. As a result, we get that the average calculation time of the factorial of the number 12 was __(602.7 ± 361.3) microseconds__.
 
 ### Performance Comparison
-- version 1: __time_1 = (36.9 ± 6.5) milliseconds__
-- version 2: __time_2 = (404.9 ± 3.0) microseconds__
-- __time_1 / time_2 = 91.13__
-The new version of the program in this test turned out to be __91 times faster__ on average than the previous version with its own virtual machine.
+- version 1: __time_1 = (11.6 ± 3.7) milliseconds__
+- version 2: __time_2 = (602.7 ± 361.3) microseconds__
+- __time_1 / time_2 = 19.27__
+The new version of the program in this test turned out to be __19.27 times faster__ on average than the previous version with its own virtual machine.
 
 ## Key Findings
-##### 91x Speed Improvement:
-VM version: 36.9 ms (± 6.5 ms)
-NASM version: 404.9 µs (± 3.0 µs)
+##### 19.7x Speed Improvement:
+VM version: 11.6 ms (± 3.7 ms)
+NASM version: 602.7 µs (± 361.3 µs)
 
-This represents a 91-fold performance increase in the NASM version
+This represents a 19.7-fold performance increase in the NASM version.
 
-##### Measurement Reliability:
-The VM version showed 17.6% relative error (6.5ms/36.9ms)
-The NASM version achieved stable measurements with just 0.75% error after switching to perf stat.
 
 ## Conclusions
-The results confirm the correctness of the architectural decision to switch from a virtual machine to machine code generation, demonstrating that proper compiler development can lead to significant performance improvements.
+The results confirm that proper compiler development can lead to significant performance improvements.

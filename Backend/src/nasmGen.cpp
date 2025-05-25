@@ -47,7 +47,7 @@ void RunGenerator(tNode* root) {
     GetGlobals(&st, root); // найти все глобальные переменные 
 
     fprintf(output, "\nsection .data\n");
-    fprintf(output, "    fmt db \"%%d\", 10, 0\n");
+    fprintf(output, "    fmt db \"%%zu\", 10, 0\n");
 
     for (size_t i = 0; i < st.count; i++) {
         fprintf(output, "    %s dq %s\n", st.symbols[i].name, st.symbols[i].initialValue);

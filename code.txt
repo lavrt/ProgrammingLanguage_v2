@@ -1,17 +1,22 @@
-n = 12 ;
+n = 46 ;
 
-k = 1 ;
-i = 0 ;
-while ( i < n )
+if ( n < 2 )
 {
-    i = i + 1 ;
-    k = k * i ;
-    if ( n == i )
-    {
-        z = 0 ;
-        z = k ;
-    } ;
+    print ( n ) ;
 } ;
-print ( z ) ;
+
+a = 0 ;
+b = 1 ;
+c = 0 ;
+
+i = 2 ;
+while ( i <= n )
+{
+    c = a + b ;
+    a = b ;
+    b = c ;
+    i = i + 1 ;
+} ;
+print ( b ) ;
 
 end
