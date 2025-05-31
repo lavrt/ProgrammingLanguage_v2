@@ -47,14 +47,14 @@ def f ( n )
         } ;
     } ;
 } ;
-n = 12 ;
+n = 20 ;
 k = call f ( n ) ;
 end
 ```
 
 Example of a program for calculating the factorial without using the function:
 ```
-n = 12 ;
+n = 20 ;
 k = 1 ;
 i = 0 ;
 while ( i < n )
@@ -72,19 +72,19 @@ end
 
 ## Comparison of the calculation speed of the factorial for compilers with various backend modules
 
-As already noted, we are comparing the first version of my project and the latest one. As a test program, we will take the calculation of the factorial of the number 12 (the code is given above). To get closer to the true value of the program execution speed, we will measure time by repeatedly repeating the same program. The hyperfine utility will help us with this.
+As already noted, we are comparing the first version of my project and the latest one. As a test program, we will use the calculation of the factorial of the number 20, the largest number whose factorial is placed in 64 bits (the code is given above). To get closer to the true value of the program execution speed, we will measure time by repeatedly repeating the same program. The hyperfine utility will help us with this.
 
 ### Programming language, (the first version, with a virtual machine)
 
 ![Screenshot 1 of the hyperfine](./images/1.jpg)
 
-1000 launches of the program were conducted. As a result, we get that the average calculation time of the factorial of the number 12 was __(11.6 ± 3.7) milliseconds__.
+1000 launches of the program were conducted. As a result, we get that the average calculation time of the factorial of the number 20 was __(11.6 ± 3.7) milliseconds__.
 
 ### Programming language v2, (the latest version, with nasm code generation)
 
 ![Screenshot 2 of the hyperfine](./images/2.jpg)
 
-1000 launches of the program were conducted. As a result, we get that the average calculation time of the factorial of the number 12 was __(602.7 ± 361.3) microseconds__.
+1000 launches of the program were conducted. As a result, we get that the average calculation time of the factorial of the number 20 was __(602.7 ± 361.3) microseconds__.
 
 ### Performance Comparison
 - version 1: __time_1 = (11.6 ± 3.7) milliseconds__
